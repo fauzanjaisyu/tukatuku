@@ -6,6 +6,9 @@
 **2206814040**<br/>
 **PBP C**<br/>
 
+Tautan untuk menuju aplikasi TukaTuku dapat diakses melalui [TukaTuku](https://tukatuku-web.adaptable.app/main/).
+
+
 ## **Langkah pengerjaan tugas 2 PBP**
 1. Membuat direktori bernama `tukatuku` kemudian mengksesnya pada shell
 2. Membuat *virtual environment* Python untuk mengisolasi proyek Python dengan menggunakan perintah `python -m venv env`.
@@ -278,3 +281,34 @@ urlpatterns = [
 8. Pada bagian `Start Command` masukkan perintah `python manage.py migrate && gunicorn (main directory).wsgi`.
 9. Masukkan nama aplikasi yang juga akan menjadi nama domain situs web aplikasimu.
 10. Centang bagian `HTTP Listener on PORT` dan klik `Deploy App` untuk memulai proses deployment aplikasi.
+
+## **Bagan Client Request and Response - Django**
+![alt-text](image/bagan.png)
+User akan melakukan *request* HTTP aplikasi `main` dan diterima oleh *web browser*,lalu URL *mapping* dilakukan oleh `urls.py` untuk meneruskan *request* HTTP ke `views.py`. Kemudian *request* HTTP dikembalikan oleh view menjadi *response* yang berupa HTML *page. Pada proses pengembalian, view memproses data yang dibutuhkan via `models.py` dan *template* yang akan menampilkan data tersebut.
+
+## **Penggunaan Virtual Environment**
+Virtual environment digunakan untuk mengelola dependensi, menjaga kebersihan lingkungan pengembangan, dan menghindari konflik antara versi Python dan paket-paket Python yang berbeda. Ini menjadi praktik yang umum dalam pengembangan perangkat lunak Python yang bersih dan teratur. Pembuatan aplikasi web berbasis Django sangat memungkinkan. Namun, bisa saja dapat terjadi risiko konflik *dependencies* antar proyek yang menyebabkan proyek yang sedang dibangun menjadi runyam.
+
+## **MVC, MVT, MVVM, serta perbedaan ketiganya**
+
+MVC (Model-View-Controller), MVT (Model-View-Template), dan MVVM (Model-View-ViewModel) adalah tiga pola desain (design patterns) yang umum digunakan dalam pengembangan perangkat lunak, terutama dalam pengembangan aplikasi berbasis web. Mereka membantu dalam mengatur dan memisahkan komponen-komponen aplikasi untuk meningkatkan keterbacaan, skalabilitas, dan pemeliharaan.
+
+1.MVC (Model-View-Controller)
+
+Controller : Perantara antara Model dan View. Controller menerima input dari pengguna melalui View, memprosesnya, berinteraksi dengan Model untuk mengambil atau memodifikasi data, dan kemudian memperbarui tampilan (View) sesuai dengan hasilnya 
+
+2.MVT (Model-View-Template)
+
+Template : Komponen unik dari MVT yang mengurus bagian presentasi tampilan, seperti HTML. Template berisi markup HTML dengan kode templat yang akan diisi dengan data dari Model
+
+3.MVVM (Model-View-ViewModel)
+
+ViewModel : Komponen unik dari MVVM yang berfungsi sebagai perantara antara Model dan View. ViewModel mengambil data dari Model dan memprosesnya menjadi bentuk yang dapat langsung ditampilkan oleh View. ViewModel juga berisi logika yang terkait dengan tampilan
+
+Tabel perbedaan ketiga pola ini
+
+| **MVC** | **MVT** | **MVVM** |
+| --- | --- | --- |
+| Input diterima langsung oleh Controller | Input diterima langsung oleh put diterima langsung oleh View | Input diterima langsung oleh put diterima langsung oleh View |
+| View dan Controller memiliki relasi many-to-many | View dan Template memiliki relasi one-to-one | View dan ViewModel memiliki relasi one-to-many |
+| View bertanggung jawab terhadap Model yang akan diteruskan | View tidak bertanggung jawab terhadap Model, Template yang akan memperbarui Model | View tidak bertanggung jawab terhadap Model, ViewModel yang akan memperbarui View |
