@@ -1,6 +1,8 @@
 # **Market APP**
 
-**Tugas 2 - Mata Kuliah PBP**
+**Daftar isi :**<br/>
+[Tugas 2](#tugas-2)<br/>
+[Tugas 3](#tugas-3)
 
 **Muhammad Fauzan Jaisyurrahman**<br/>
 **2206814040**<br/>
@@ -8,7 +10,7 @@
 
 Tautan untuk menuju aplikasi TukaTuku dapat diakses melalui [TukaTuku](https://tukatuku-web.adaptable.app/main/).
 
-
+# **Tugas 2**
 ## **Langkah pengerjaan tugas 2 PBP**
 1. Membuat direktori bernama `tukatuku` kemudian mengksesnya pada shell
 2. Membuat *virtual environment* Python untuk mengisolasi proyek Python dengan menggunakan perintah `python -m venv env`.
@@ -312,3 +314,222 @@ Tabel perbedaan ketiga pola ini
 | Input diterima langsung oleh Controller | Input diterima langsung oleh put diterima langsung oleh View | Input diterima langsung oleh put diterima langsung oleh View |
 | View dan Controller memiliki relasi many-to-many | View dan Template memiliki relasi one-to-one | View dan ViewModel memiliki relasi one-to-many |
 | View bertanggung jawab terhadap Model yang akan diteruskan | View tidak bertanggung jawab terhadap Model, Template yang akan memperbarui Model | View tidak bertanggung jawab terhadap Model, ViewModel yang akan memperbarui View |
+
+# **Tugas 3**
+## **Langkah pengerjaan tugas 3 PBP (Implementasi *Data Delivery*)**
+
+### Membuat input `form`
+
+1. Pertama, membuat berkas baru `forms.py` pada direktori `main` serta menambahkan kode berikut.
+
+    ```python
+    from django.forms import ModelForm
+    from main.models import MarketStock
+
+    class ProductForm(ModelForm):
+        class Meta:
+            model = MarketStock
+            fields = ["name", "price", "description", "amount"]
+    ```
+
+
+2. Kedua, mengubah fungsi `show_stock` pada `views.py` dengan kode berikut.
+
+    ```python
+    def show_stock(request):
+        products = MarketStock.objects.all()
+
+        context = {
+            'name' : 'Muhammad Fauzan Jaisyurrahman',
+            'class' : 'PBP - C',
+            'products' : products,
+        }
+
+        return render(request, "main.html", context)
+    ```
+
+### Menambahkan fungsi pada `views` dan membuat routing URL
+
+Membuat fungsi untuk melihat atau mengembalikan data yang telah dimasukkan melalui `form`. Sebelum membuat fungsi baru pada views tambahkan beberapa *import* berikut.
+
+```py
+from django.shortcuts import render
+from django.http import HttpResponseRedirect, HttpResponse
+from main.forms import ProductForm
+from django.urls import reverse
+from main.models import MarketStock
+from django.core import serializers
+```
+
+#### **Format HTML**
+
+1. pertama,  buat fungsi baru bernama `create_product` dengan parameter `request` dan sertakan kode berikut.
+
+    ```python
+    def create_product(request):
+    form = ProductForm(request.POST or None)
+
+    if form.is_valid() and request.method == "POST":
+        form.save()
+        return HttpResponseRedirect(reverse('main:show_stock'))
+
+    context = {'form': form}
+    return render(request, "create_product.html", context)
+
+    ```
+
+2. Membuat berkas HTML baru (*template create product*) dengan nama `create_product.html` pada direktori `main/templates`.
+    ```HTML
+    {% extends 'base.html' %} 
+
+    {% block content %}
+    <h1>Add New Product</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+            <tr>
+                <td></td>
+                <td>
+                    <input type="submit" value="Add Product"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    {% endblock %}
+    ```
+
+3. Menampilkan barang-barang yang tersedia dalam bentuk tabel serta membuat tombol `Add New Product` pada `main.html`.
+
+    ```HTML
+    h2 class="section-title">Product List</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+            </tr>
+
+            {% comment %} Berikut cara memperlihatkan data produk di bawah baris ini {% endcomment %}
+
+            {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.description }}</td>
+                    <td>{{ product.category }}</td>
+                    <td>{{ product.amount }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="total-item">
+            <p>You have {{ products|length }} items in your application</p>
+        </div>
+
+        <a href="{% url 'main:create_product' %}" class="add-product-btn">Add New Product</a>
+    </div>
+    ```
+
+#### **Format XML**
+
+Tambahkan fungsi `show_xml` dengan parameter `request` yang me-return `HttpResponse` berisi data yang sudah di-serialize menjadi XML.
+
+```py
+def show_xml(request):
+    data = MarketStock.objects.all()
+    return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
+```
+
+#### **Format JSON**
+
+Tambahkan fungsi `show_json` dengan parameter `request` yang me-return `HttpResponse` berisi data yang sudah di-serialize menjadi JSON.
+
+```py
+def show_json(request):
+    data = MarketStock.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+```
+
+#### **Format XML *by* ID**
+
+Tambahkan fungsi `show_xml_by_id` dengan parameter `request` yang me-return `HttpResponse` berisi data yang sudah di-serialize.
+
+```py
+def show_xml_by_id(request, id):
+    data = MarketStock.objects.filter(pk=id)
+    return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
+```
+
+#### **Format JSON *by* ID**
+
+Tambahkan fungsi `show_json_by_id` dengan parameter `request` yang me-return `HttpResponse` berisi data yang sudah di-serialize.
+
+```py
+def show_json_by_id(request, id):
+    data = MarketStock.objects.filter(pk=id)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+```
+
+Setelah pembuatan fungsi `show` selesai, buat routingnya dengan menambahkan path pada `urlpattern` di dalam berkas `urls.py`.
+
+```py
+from django.urls import path
+from main.views import show_stock, create_product, show_xml, show_json, show_json_by_id, show_xml_by_id
+
+app_name = 'main'
+
+urlpatterns = [
+    path('', show_stock, name='show_stock'),
+    path('create-product', create_product, name='create_product'),
+    path('xml/', show_xml, name='show_xml'), 
+    path('json/', show_json, name='show_json'),
+    path('xml/<int:id>/', show_xml_by_id, name='show_xml_by_id'),
+    path('json/<int:id>/', show_json_by_id, name='show_json_by_id'), 
+]
+```
+
+Input form sudah selesai dibuat dan siap digunakan. Jalankan command `python manage.py runserver` dan kunjungi http://localhost:8000 mencobanya.
+
+## ***Screenshoot* Postman**
+
+Berikut adalah *screenshoot* hasil mengakses kelima URL melalui Postman
+
+1. HTML
+    ![alt-text](image/html.png)
+2. XML
+    ![alt-text](image/xml.png)
+3. JSON
+    ![alt-text](image/json.png)
+4. XML *by* ID
+    ![alt-text](image/xmlbyid-6.png)
+5. JSON *by* ID
+    ![alt-text](image/jsonbyid-6.png)
+
+## **Perbedaan antara form `POST` dan form `GET` dalam Django**
+
+Di Django, `POST` dan `GET` adalah dua metode HTTP yang digunakan untuk mengirim data dari browser ke server. Kedua metode ini memiliki peran dan karakteristik yang berbeda.
+
+| Perbedaan | `POST` | `GET` |
+| -- | -- | -- |
+| Penggunaan Utama | Digunakan untuk mengirim data ke server, terutama ketika ingin mengirim data yang bersifat sensitif dan mempengaruhi status server | Digunakan untuk mengambil data dari server, terutama ketika ingin mengambil data tanpa mempengaruhi status server |
+| Pengiriman Data | Data yang dikirim tidak terlihat di URL | Data yang dikirm terlihat dalam URL |
+| Keamanan | Lebih aman untuk mengirim data sensitif | Kurang aman untuk data sensitif |
+
+## **Perbedaan utama antara XML, JSON, dan HTML dalam konteks pengiriman data**
+
+| Perbedaan | XML | JSON | HTML |
+|--|--|--|--|
+| Tujuan Utama | XML digunakan untuk pertukaran data antara berbagai sistem dan platform. XML sering digunakan dalam layanan web, konfigurasi file, dan pertukaran data yang kompleks | JSON digunakan untuk pertukaran data di antara aplikasi web dan server. Ini telah menjadi format yang sangat populer untuk API web RESTful karena kemudahan penggunaannya dan pembacaan manusia yang mudah | HTML digunakan untuk membuat tampilan dan struktur halaman web yang dapat ditampilkan oleh peramban web |
+
+## **Alasan mengapa JSON sering digunakan dalam pertukaran data antara aplikasi web modern**
+Berikut adalah kelebihan penggunaan JSON dalam pertukaran data:
+1. Ringkas dan Mudah Dibaca: JSON adalah format yang ringkas dan mudah dibaca oleh manusia. Strukturnya terdiri dari pasangan "kunci-nilai" yang membuatnya mudah dipahami dan diinterpretasi oleh pengembang. Karena kemudahan keterbacaannya, JSON membuat proses pengembangan dan debugging lebih mudah.
+
+2. Struktur Data yang Fleksibel: JSON mendukung struktur data yang sangat fleksibel, termasuk larik, objek bersarang, dan tipe data primitif. Ini memungkinkan Anda untuk mewakili data dengan tingkat kompleksitas yang berbeda, sehingga sesuai untuk berbagai jenis aplikasi web.
+
+3. Lintas Platform dan Browser: JSON dapat digunakan di berbagai platform dan didukung oleh sebagian besar peramban web modern. Ini memastikan bahwa data dalam format JSON dapat diakses oleh berbagai jenis perangkat dan sistem operasi.
