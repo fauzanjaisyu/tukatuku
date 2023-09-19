@@ -1,12 +1,78 @@
-<h1>Welcome to TukaTuku!</h1>
+{% extends 'base.html' %}
 
-<h5>Item: </h5>
-<p>{{ name }}</p>
-<h5>Stok: </h5>
-<p>{{ amount }}</p>
-<h5>Deskripsi: </h5>
-<p>{{ description }}</p>
-<h5>Harga: </h5>
-<p>{{ price }}</p>
-<h5>Kategori: </h5>
-<p>{{ category }}</p>
+{% block content %}
+
+    <head>
+        <style>
+            .total-item {
+                /* border: 5px outset #007bff; */
+                background-color: lightblue;    
+                color: #fff;
+                padding: 10px 20px; 
+                border: none; 
+                border-radius: 5px;
+                font-size: 18px; 
+                cursor: pointer; 
+                text-decoration: none; 
+                margin-top: 20px;
+                text-align: center;
+            }
+
+        </style>
+    </head>
+
+    <h1 style="font-size: 32px; color: #333;text-align: center;">
+        Welcome to
+        <span style="color: blue;">Tuka</span>
+        <span style="color: red;">Tuku!</span>
+    </h1>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+
+        <tr>
+            <td style="font-size: 18px; color: #555; padding: 10px;">Nama:</td>
+            <td style="font-size: 16px; border: 1px solid #ddd; padding: 10px;">{{ name }}</td>
+        </tr>
+        <tr>
+            <td style="font-size: 18px; color: #555; padding: 10px;">Kelas:</td>
+            <td style="font-size: 16px; border: 1px solid #ddd; padding: 10px;">{{ class }}</td>
+        </tr>
+    </table>
+
+    <h2 style="font-size: 24px; color: #333; margin-top: 20px; text-align: center;">Product List</h2>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr>
+            <th style="background-color: #333; color: #fff; font-size: 18px; padding: 10px;">Name</th>
+            <th style="background-color: #333; color: #fff; font-size: 18px; padding: 10px;">Price</th>
+            <th style="background-color: #333; color: #fff; font-size: 18px; padding: 10px;">Description</th>
+            <th style="background-color: #333; color: #fff; font-size: 18px; padding: 10px;">Category</th>
+            <th style="background-color: #333; color: #fff; font-size: 18px; padding: 10px;">Amount</th>
+        </tr>
+    
+        {% comment %} Berikut cara memperlihatkan data produk di bawah baris ini {% endcomment %}
+    
+        {% for product in products %}
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 16px;">{{product.name}}</td>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 16px;">{{product.price}}</td>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 16px;">{{product.description}}</td>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 16px;">{{product.category}}</td>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 16px;">{{product.amount}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+
+    <br />
+    <body>
+        <div class="total-item">
+            <p style="color: #fff">Kamu menyimpan {{ products|length }} item pada aplikasi ini</p>
+        </div>
+    </body>
+
+
+    <a href="{% url 'main:create_product' %}">
+        <button style="background-color: #007bff; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; text-decoration: none; margin-top: 20px;">Add New Product</button>
+    </a>
+{% endblock content %}
