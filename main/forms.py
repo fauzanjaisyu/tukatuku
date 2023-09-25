@@ -4,4 +4,4 @@ from main.models import MarketStock
 class ProductForm(ModelForm):
     class Meta:
         model = MarketStock
-        fields = ["name", "price", "description", "amount"]
+        fields = ["name", "price", "description", "amount", "category"]
