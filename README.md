@@ -2,7 +2,8 @@
 
 **Daftar isi :**<br/>
 [Tugas 2](#tugas-2)<br/>
-[Tugas 3](#tugas-3)
+[Tugas 3](#tugas-3)<br/>
+[Tugas 4](#tugas-4)
 
 **Muhammad Fauzan Jaisyurrahman**<br/>
 **2206814040**<br/>
@@ -533,3 +534,333 @@ Berikut adalah kelebihan penggunaan JSON dalam pertukaran data:
 2. Struktur Data yang Fleksibel: JSON mendukung struktur data yang sangat fleksibel, termasuk larik, objek bersarang, dan tipe data primitif. Ini memungkinkan Anda untuk mewakili data dengan tingkat kompleksitas yang berbeda, sehingga sesuai untuk berbagai jenis aplikasi web.
 
 3. Lintas Platform dan Browser: JSON dapat digunakan di berbagai platform dan didukung oleh sebagian besar peramban web modern. Ini memastikan bahwa data dalam format JSON dapat diakses oleh berbagai jenis perangkat dan sistem operasi.
+
+# **Tugas 4**
+## **Langkah pengerjaan tugas 4 PBP (melakukan implementasi konsep authentication, session, cookies)**
+
+### **Mengimplementasikan fungsi registrasi, login, dan logout untuk memungkinkan pengguna untuk mengakses aplikasi sebelumnya, menghubungkan model `Item` dengan `User`, menampilkan detail informasi pengguna yang sedang logged in seperti username dan menerapkan `cookies` seperti `last login` pada halaman utama aplikasi**
+
+1. Aktifkan *Python virtual environment.*
+
+2. Import beberapa modul berikut pada `views.py` pada `main`.
+
+    ```py
+    import datetime
+    from django.contrib.auth.decorators import login_required
+    from django.contrib.auth.forms import UserCreationForm
+    from django.contrib.auth import authenticate, login, logout
+    from django.contrib import messages
+    from django.shortcuts import render, redirect
+    from django.core import serializers
+    from django.http import HttpResponse
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
+    from main.forms import ProductForm
+    from main.models import InventoryItem
+    ```
+
+3. Buat fungsi `register`, `login`, `logout` dengan parameter `request`, serta menambahkan kode pada fungsi `show_stock` dan `create_product`.
+
+    Tambahkan fungsi berikut:
+
+    ```py
+    def register(request):
+    form = UserCreationForm()
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been successfully created!')
+            return redirect('main:login')
+    context = {'form':form}
+    return render(request, 'register.html', context)
+
+    def login_user(request):
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                response = HttpResponseRedirect(reverse("main:show_stock")) 
+                response.set_cookie('last_login', str(datetime.datetime.now()))
+                return response
+            else:
+                messages.info(request, 'Sorry, incorrect username or password. Please try again.')
+        context = {}
+        return render(request, 'login.html', context)
+
+    def logout_user(request):
+        logout(request)
+        response = HttpResponseRedirect(reverse('main:login'))
+        response.delete_cookie('last_login')
+        return response
+    ```
+
+    Ubah `show_stock` dan `create_product`
+
+    ```py
+    @login_required(login_url='/login')
+    def show_stock(request):
+        products = MarketStock.objects.filter(user=request.user)
+
+        context = {
+            'name' : request.user.username,
+            'class' : 'PBP - C',
+            'products' : products,
+            'last_login' : request.COOKIES['last_login'],
+        }
+
+        return render(request, "main.html", context)
+
+    def create_product(request):
+        form = ProductForm(request.POST or None)
+
+        if form.is_valid() and request.method == "POST":
+            product = form.save(commit=False)
+            product.user = request.user
+            product.save()
+            return HttpResponseRedirect(reverse('main:show_stock'))
+
+        context = {'form': form}
+        return render(request, "create_product.html", context)
+
+    ``` 
+
+
+
+4. Membuat berkas `register.html`, `login.html` serta menambahkan tombol `logout` pada `main.html`. Serta menambahkan tampilan 'sesi terakhir login'.
+
+
+    Isi berkas `register.html`.
+
+    ```HTML
+    {% extends 'base.html' %}
+
+    {% block meta %}
+        <title>Register</title>
+    {% endblock meta %}
+
+    {% block content %}  
+
+    <div class = "login">
+    
+    <h1>Register</h1>  
+
+        <form method="POST" >  
+            {% csrf_token %}  
+            <table>  
+                {{ form.as_table }}  
+                <tr>  
+                    <td></td>
+                    <td><input type="submit" name="submit" value="Daftar"/></td>  
+                </tr>  
+            </table>  
+        </form>
+
+    {% if messages %}  
+        <ul>   
+            {% for message in messages %}  
+                <li>{{ message }}</li>  
+                {% endfor %}  
+        </ul>   
+    {% endif %}
+
+    </div>  
+
+    {% endblock content %}
+    ```
+
+    Isi berkas `login.html`
+
+    ```HTML
+    {% extends 'base.html' %}
+
+    {% block meta %}
+        <title>Login</title>
+    {% endblock meta %}
+
+    {% block content %}
+    <style>
+        
+        .center {
+            display: flex;
+            justify-content: center; /* Mengatur posisi horizontal tengah */
+            align-items: center; /* Mengatur posisi vertikal tengah */
+            height: 100vh; /* Mengisi tinggi ke seluruh tinggi layar */
+        }
+
+        .login {
+            width: 300px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            font-family: Arial, sans-serif;
+        }
+
+        .login h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .login table {
+            width: 100%;
+        }
+
+        .login td {
+            padding: 10px;
+        }
+
+        .login .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .login .btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .login .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .login .error-messages {
+            color: red;
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        .login a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .login a:hover {
+            text-decoration: underline;
+        }
+
+        .centered-text {
+            text-align: center;
+        }
+    </style>
+
+    <!-- Memasukkan kotak login ke dalam div untuk mengatur tata letak -->
+    <div class="center">
+        <div class="login">
+            <h1>Login</h1>
+
+            <form method="POST" action="">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>Username: </td>
+                        <td><input type="text" name="username" placeholder="Username" class="form-control"></td>
+                    </tr>
+                            
+                    <tr>
+                        <td>Password: </td>
+                        <td><input type="password" name="password" placeholder="Password" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td></td>
+                        <td><input class="btn" type="submit" value="Login"></td>
+                    </tr>
+                </table>
+            </form>
+
+            {% if messages %}
+                <ul class="error-messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}     
+            
+            <p class="centered-text">Don't have an account yet? <a href="{% url 'main:register' %}">Hit me!</a></p>
+        </div>
+    </div>
+
+    {% endblock content %}
+    ```
+
+    Tambahkan tombol `logout` pada `main.html`.
+    ```HTML
+    ...
+    <!-- Logout button -->
+        <a href="{% url 'main:logout' %}" class="logout-btn">Logout</a>
+    ...
+    ```
+
+    Pada `main.html` tambahkan potongan kode berikut untuk menambahkan tampilan 'sesi terakhir login'
+    ```HTML
+    ...
+    <h5>Sesi terakhir login: {{ last_login }}</h5>
+    ...
+    ```
+
+## **Membuat dua akun *dummy* dan masing-masing tiga item *dummy***
+
+1. Username : fauzanpbp
+
+    ![alt-text](image/fauzanpbp.png)
+
+2. Username : fauzanjaisyu
+
+    ![alt-text](image/fauzanjaisyu.png)
+
+
+
+## **Apa itu Django `UserCreationForm`,dan apa saja kelebihan dan kekurangannya**
+`django.contrib.auth.forms.UserCreationForm` adalah sebuah formulir bawaan Django yang digunakan untuk membuat formulir pendaftaran pengguna (user registration form) dalam aplikasi web Anda. Formulir ini menyediakan berbagai bidang yang umumnya diperlukan untuk mendaftarkan pengguna baru, seperti nama pengguna (username), kata sandi (password), dan konfirmasi kata sandi (password confirmation). Ini adalah salah satu komponen dari sistem autentikasi yang kuat yang disediakan oleh Django.
+
+|Kelebihan|Kekurangan|
+|--|--|
+|Mudah Digunakan: UserCreationForm adalah komponen yang sudah jadi dan siap pakai dalam Django. Ini memungkinkan Anda membuat formulir pendaftaran pengguna dengan cepat tanpa harus menulis kode formulir dari awal.|Keterbatasan dalam Kasus Penggunaan Khusus: Terkadang, aplikasi web mungkin memiliki kebutuhan yang lebih kompleks untuk pendaftaran pengguna daripada yang ditangani oleh UserCreationForm. Dalam kasus-kasus seperti itu, Anda mungkin perlu menulis formulir pendaftaran kustom Anda sendiri.|
+|Terintegrasi dengan Django Authentication: Formulir ini terintegrasi dengan baik dengan sistem autentikasi Django. Ini akan menangani validasi kata sandi, pengulangan kata sandi, serta penyimpanan data pengguna ke dalam basis data.|Tidak Otomatis Menyertakan Bidang Tambahan: Jika Anda perlu menyertakan bidang tambahan dalam pendaftaran pengguna (misalnya, alamat, nomor telepon, atau foto profil), Anda harus menyesuaikan formulir ini secara manual.|
+
+## **Perbedaan antara autentikasi dan otorisasi dalam konteks Django, dan mengapa keduanya penting**
+
+Autentikasi dan otorisasi adalah dua konsep yang sangat penting dalam konteks pengembangan web, termasuk dalam kerangka kerja Django. Keduanya adalah bagian integral dari sistem keamanan yang memastikan bahwa pengguna memiliki akses yang sesuai ke berbagai bagian dari aplikasi web Anda, tetapi masing-masing memiliki peran yang berbeda.
+
+|   |Autentikasi|Otorisasi|
+|--|--|--|
+|Arti|Autentikasi adalah proses verifikasi identitas pengguna. Ini adalah cara untuk memastikan bahwa seseorang adalah orang yang mereka klaim.|Otorisasi adalah proses menentukan hak akses apa yang dimiliki pengguna setelah mereka diotentikasi. Ini menentukan apa yang dapat dan tidak dapat diakses oleh pengguna tertentu dalam aplikasi.|
+|Dalam konteks Django|Django menyediakan sistem autentikasi yang memungkinkan pengguna untuk mendaftar, masuk, dan mengelola akun mereka. Ini termasuk verifikasi kata sandi, penyimpanan informasi pengguna, dan lainnya.|Django menyediakan sistem otorisasi yang berbasis pada model pengguna (User) dan grup pengguna (Group). Anda dapat mengatur hak akses pengguna ke berbagai bagian dari aplikasi Anda menggunakan izin.|
+|Kegunaan| Autentikasi penting untuk memastikan bahwa hanya pengguna yang sah yang memiliki akses ke aplikasi Anda. Ini mencegah orang yang tidak sah mengakses data atau fungsi yang seharusnya hanya tersedia untuk pengguna yang sah.|Otorisasi memastikan bahwa pengguna hanya dapat melihat atau mengubah data yang sesuai dengan peran atau izin mereka dalam aplikasi. Ini membantu melindungi data sensitif dan mengelola tingkat akses pengguna.|
+
+## ***Cookies* dalam konteks aplikasi web, dan bagaimana Django menggunakan *cookies* untuk mengelola data sesi pengguna**
+
+Cookies adalah potongan kecil data yang disimpan di sisi klien (misalnya, di browser web) dan digunakan dalam konteks aplikasi web untuk menyimpan informasi terkait sesi pengguna atau preferensi. Cookies biasanya berisi data dalam bentuk teks, dan mereka digunakan oleh aplikasi web untuk mengidentifikasi pengguna, menyimpan preferensi, dan melacak informasi lainnya terkait sesi pengguna. Dalam konteks Django, cookies sering digunakan untuk mengelola data sesi pengguna.
+
+Django menggunakan cookies untuk mengelola data sesi pengguna melalui modul `django.contrib.sessions.middleware.SessionMiddleware`. Berikut adalah langkah-langkah umum bagaimana Django mengelola data sesi pengguna menggunakan cookies:
+
+* Membuat atau Memeriksa Sesi: Ketika pengguna mengakses situs web Anda, Django akan membuat atau memeriksa sesi pengguna. Sesinya mungkin berisi informasi seperti ID pengguna yang terotentikasi atau preferensi pengguna.
+
+* Penyimpanan Data Sesi: Django akan menyimpan data sesi pengguna di server, dan ID sesi ini akan dienkripsi. Data sesi sebenarnya tidak akan disimpan dalam cookies, tetapi hanya ID sesi yang akan dikirimkan ke browser pengguna.
+
+* Cookie Sesesi: Django akan mengirimkan ID sesi ke browser pengguna dalam bentuk cookie. Cookie ini akan disimpan di browser pengguna.
+
+* Permintaan Selanjutnya: Ketika pengguna melakukan permintaan selanjutnya ke situs web Anda, browser akan mengirimkan cookie sesi bersama dengan permintaan. Django kemudian akan membaca cookie ini dan mencocokkannya dengan sesi yang sesuai di server.
+
+* Akses Data Sesi: Setelah sesi ditemukan, Django dapat mengakses data sesi pengguna yang sesuai. Ini memungkinkan Anda untuk menyimpan dan mengambil data yang berhubungan dengan pengguna selama sesi berlangsung.
+
+## **Keamanan penggunaan *cookies* secara *default***
+
+Penggunaan cookies dalam pengembangan web bergantung pada bagaimana cookies digunakan dalam konteks aplikasi web Anda dan bagaimana Anda mengelolanya. Cookies adalah alat yang sangat berguna untuk mengelola sesi pengguna dan menyimpan data sederhana di sisi klien, tetapi juga memiliki potensi risiko yang perlu diwaspadai. Berikut adalah beberapa risiko potensial yang harus diwaspadai terkait penggunaan cookies:
+
+* Cross Site Scripting (XSS) - Penyerang memasukkan skrip berbahaya dalam cookie, yang akan dieksekusi oleh browser pengguna
+
+* Cross-Site Request Forgery (CSRF) adalah serangan keamanan pada aplikasi web yang bertujuan untuk memanipulasi pengguna agar melakukan tindakan yang tidak diinginkan atau tidak disadari tanpa persetujuan mereka.
