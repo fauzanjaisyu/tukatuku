@@ -106,51 +106,36 @@
         <h1>Welcome to <span class="logo">Tuka</span><span class="tagline">Tuku!</span></h1>
     </div>
 
-    <div class="container">
-        <h2 class="section-title">User Information</h2>
-        <table>
-            <tr>
-                <td>Nama:</td>
-                <td>{{ name }}</td>
-            </tr>
-            <tr>
-                <td>Kelas:</td>
-                <td>{{ class }}</td>
-            </tr>
-        </table>
-
-        <h2 class="section-title">Product List</h2>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Amount</th>
-            </tr>
-
-            {% for product in products %}
-                <tr>
-                    <td>{{ product.name }}</td>
-                    <td>{{ product.price }}</td>
-                    <td>{{ product.description }}</td>
-                    <td>{{ product.category }}</td>
-                    <td>{{ product.amount }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <div class="total-item">
-            <p>You have {{ products|length }} items in your application</p>
+    
+<div class="container">
+    <h2 class="section-title">Product List</h2>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">Price: ${{ product.price }}</p>
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text">Category: {{ product.category }}</p>
+                    <p class="card-text">Amount: {{ product.amount }}</p>
+                </div>
+            </div>
         </div>
-
-        <a href="{% url 'main:create_product' %}" class="add-product-btn">Add New Product</a>
-        
-        <h5>Sesi terakhir login: {{ last_login }}</h5>
-
-        <!-- Logout button -->
-        <a href="{% url 'main:logout' %}" class="logout-btn">Logout</a>
+        {% endfor %}
     </div>
+
+    <div class="total-item">
+        <p>You have {{ products|length }} items in your application</p>
+    </div>
+
+    <a href="{% url 'main:create_product' %}" class="add-product-btn">Add New Product</a>
+    
+    <h5>Sesi terakhir login: {{ last_login }}</h5>
+
+    <!-- Logout button -->
+    <a href="{% url 'main:logout' %}" class="logout-btn">Logout</a>
+</div>
 </body>
 </html>
 {% endblock content %}

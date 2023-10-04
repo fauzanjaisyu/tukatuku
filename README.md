@@ -3,7 +3,8 @@
 **Daftar isi :**<br/>
 [Tugas 2](#tugas-2)<br/>
 [Tugas 3](#tugas-3)<br/>
-[Tugas 4](#tugas-4)
+[Tugas 4](#tugas-4)<br/>
+[Tugas 5](#tugas-5)
 
 **Muhammad Fauzan Jaisyurrahman**<br/>
 **2206814040**<br/>
@@ -864,3 +865,68 @@ Penggunaan cookies dalam pengembangan web bergantung pada bagaimana cookies digu
 * Cross Site Scripting (XSS) - Penyerang memasukkan skrip berbahaya dalam cookie, yang akan dieksekusi oleh browser pengguna
 
 * Cross-Site Request Forgery (CSRF) adalah serangan keamanan pada aplikasi web yang bertujuan untuk memanipulasi pengguna agar melakukan tindakan yang tidak diinginkan atau tidak disadari tanpa persetujuan mereka.
+
+# **Tugas 5**
+
+## **Penggunaan *element selector* dan waktu penggunaannya**
+
+*Element selector* digunakan untuk merapikan tampilan html. *Element selector* memungkinkan penggunan untuk menerapkan *styling* pada beberapa elemen HTML tertentu. *Element selector* yang saya gunakan untuk memberi warna pada elemen-elemen tertentu dan untuk mengatur posisi elemen-elemen tersebut. Waktu penggunaan *Element selector* yang tepat adalah ketika digunakan untuk menghias elemen-elemen HTML dasar seperti misal judul, daftar, paragraf. *Element selector* juga digunakan ketika ingin menghapus gaya bawaan browser.
+
+## **Tentang HTML5 Tag**
+
+HTML5 merupakan singkatan dari *HyperText Markup Language 5*. HTML5 bukanlah sebuah bahasa pemrograman, melainkan bahasa markup. HTML5 adalah standar yang digunakan untuk mendefinisikan struktur dan konten dari halaman web yang berfungsi untuk mengatur elemen-elemen seperti teks, gambar, tautan, dan konten lainnya yang akan ditampilkan di browser.
+
+## **Perbedaan *margin* dengan *padding***
+
+*Margin* adalah ruang yang berada di luar batas elemen, *margin* merupakan jarak antara elemen dengan elemen-elemen lain di sekitarnya. Sedangkan *Padding* adalah ruang yang berada di dalam batas elemen, antara batas elemen dan kontennya.
+
+|*Margin*|*Padding*|
+|--|--|
+|Margin mengontrol jarak antara elemen dengan elemen-elemen lain di sekitarnya (termasuk elemen-elemen lain di dalam kontainer yang sama).|Padding mengontrol jarak antara batas elemen dan kontennya. Ini mempengaruhi tampilan elemen dan dapat memiliki latar belakang atau warna.|
+|Margin tidak memiliki latar belakang atau warna. Itu hanya mengatur jarak antara elemen dengan elemen-elemen lain di sekitarnya.|Padding mempengaruhi tampilan elemen itu sendiri dan dapat memiliki latar belakang atau warna. Ini adalah ruang di mana konten atau teks elemen berada.|
+
+## **Perbedaan *framework* CSS Tailwind dan Bootstrap. Serta waktu penggunaan yang tepat**
+
+CSS Tailwind dan Bootstrap adalah dua kerangka kerja CSS yang digunakan untuk mengembangkan tampilan dan tata letak halaman web. Keduanya memiliki pendekatan yang berbeda dalam cara mereka melakukan pengembang untuk merancang dan mengelola tampilan situs web.
+
+| |Tailwind|Bootstrap|
+|--|--|--|
+|Segi pendekatan desain|Tailwind mengikuti pendekatan "utility-first" yang memberikan fleksibilitas tinggi tetapi dapat memerlukan waktu lebih lama untuk membangun desain dari nol.|Bootstrap menyediakan komponen-komponen siap pakai yang memungkinkan Anda membangun desain lebih cepat.|
+|Ukuran file|Tailwind umumnya menghasilkan ukuran berkas yang lebih kecil karena hanya menggunakan kelas yang benar-benar diperlukan.|Bootstrap mungkin memiliki ukuran berkas yang lebih besar karena banyaknya komponen dan gaya yang telah ada.|
+
+### **Kapan waktu penggunaannya?**
+Penggunaan Tailwind dan Bootstrap tergantung pada pandangan pribadi dan kebutuhan proyek. Tailwind lebih cocok digunakan pada proyek yang memerlukan tingkat kustomisasi yang tinggi dan memerlukan tata letak komponen yang lebih unik. Sedang Bootstrap lebih cocok untuk proyek-proyek yang membutuhkan desain cepat dengan komponen bawaan yang telah ada.
+
+## **Langkah-langkah pengimplementasian pengerjaan**
+
+Untuk pengaturan tampilan agar web memiliki *Responsive Web Design*, tambahkan potongan kode berikut pada `templates/base.html` 
+
+```HTML
+{% block meta %}
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+        {% endblock meta %}
+```
+
+Kemudian menggunakan CSS *Element Selector* untuk memperindah tampilan, misal *Element Selector* pada `main.html`
+
+```HTML
+ body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+```
+
+lalu mengubah tampilan produk menggunakan card
+
+```HTML
+<div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">Price: ${{ product.price }}</p>
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text">Category: {{ product.category }}</p>
+                    <p class="card-text">Amount: {{ product.amount }}</p>
+                </div>
+```
