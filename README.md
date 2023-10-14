@@ -4,7 +4,8 @@
 [Tugas 2](#tugas-2)<br/>
 [Tugas 3](#tugas-3)<br/>
 [Tugas 4](#tugas-4)<br/>
-[Tugas 5](#tugas-5)
+[Tugas 5](#tugas-5)<br/>
+[Tugas 6](#tugas-6)
 
 **Muhammad Fauzan Jaisyurrahman**<br/>
 **2206814040**<br/>
@@ -930,3 +931,175 @@ lalu mengubah tampilan produk menggunakan card
                     <p class="card-text">Amount: {{ product.amount }}</p>
                 </div>
 ```
+
+# **Tugas 6**
+
+## **Perbedaan antara *asynchronous* programming dengan *synchronous* programming**
+
+*Asynchronous Programming* adalah paradigma pemrograman di mana tugas-tugas dapat berjalan secara bersamaan tanpa harus menunggu respon dari task yang lain.*Asynchronous Programming* berguna dalam situasi seperti mengakses jaringan atau I/O yang lambat.
+
+*Synchronous Programming* adalah paradigma pemrograman di mana tugas-tugas dieksekusi satu per satu dalam urutan tertentu. Setiap operasi harus menunggu operasi sebelumnya selesai sebelum melanjutkan. Cara ini memungkinkan eksekusi yang lebih terstruktur, tetapi bisa mengakibatkan program menjadi lambat jika ada tugas yang memakan waktu lama.
+
+|*Async*|*Sync*|
+|--|--|
+|Multi-thread, yang berarti operasi atau program dapat berjalan secara paralel|Single-thread, sehingga hanya satu operasi atau program yang akan berjalan pada satu waktu|
+|Non-blocking, yang berarti ia akan mengirimkan beberapa permintaan ke server|Blocking,yang berarti ia hanya akan mengirimkan server satu permintaan pada satu waktu dan menunggu permintaan tersebut dijawab oleh server|
+
+## **Paradigma *event-driven programming* dan penerapannya**
+
+Paradigma *event-driven programming* adalah pendekatan pemrograman di mana eksekusi program didasarkan pada kejadian atau tindakan yang terjadi. Pada paradigma ini, program menunggu dan merespons kejadian-kejadian yang terjadi, seperti tindakan pengguna, permintaan jaringan, atau perubahan status. Ini sering digunakan dalam pemrograman web untuk mengatasi tindakan pengguna, seperti mengklik tombol atau mengisi formulir, serta dalam komunikasi dengan server melalui AJAX. Dan contoh penerapan *event-driven programming* saya pada tugas 6 ini adalah pada penggunaan tombol 'Add Product by AJAX'.
+
+## **Penerapan *asynchronous programming* pada AJAX** 
+
+Asynchronous JavaScript and XML (AJAX) adalah pendekatan dalam pemrograman web yang memanfaatkan asynchronous programming (pemrograman asinkron) untuk mengirim dan menerima data dari server tanpa harus memuat ulang seluruh halaman web. Contoh penerapan *asynchronous programming* AJAX pada program saya terdapat ketika:
+
+* Menggunakan fetch untuk mengambil data produk dari server secara asinkron menggunakan `getProducts` dan kemudian merespons data yang diterima dengan `refreshProducts`
+* Memperbarui tampilan produk dalam elemen dengan id "product_row" setelah menerima respons dari server. Hal ini memungkinkan penambahan dan penghapusan produk dari daftar produk tanpa perlu memuat ulang seluruh halaman
+* Menggunakan asynchronous programming untuk menambahkan produk baru. Ketika tombol "Add Product by AJAX" diklik, program akan mengirim permintaan POST ke server dan kemudian memperbarui tampilan produk setelah operasi ini selesai
+
+## **Perbandingan antara Fetch API dan library jQuery, dan teknologi manakah yang lebih baik untuk digunakan**
+
+Beberapa perbedaannya adalah sebagai berikut
+
+|Kebutuhan|FetchAPI|jQuery|
+|--|--|--|
+|Kompatibilitas|Karena FetchAPI adalah standar modern, maka beberapa browser lama mungkin tidak mendukung secara utuh|Dirancang untuk kompatibel lintas browser|
+|Standar library|Standar bawaan pada JavaScript modern, tidak memerlukan pustaka eksternal|Memerlukan library jQuery yang harus dimuat sebagai file eksternal|
+|Ukuran file|Lebih ringan dan efisien untuk permintaan AJAX sederhana. Karena tidak memiliki komponen tambahan seperti jQuery|Lebih besar dan mungkin berat karena memerlukan library tambahan|
+
+Lebih baik yang mana? tergantung
+* Jika ingin membuat proyek baru dengan ukuran file yang lebih kecil, mudah dan efisien maka cocok dengan FetchAPI
+* Jika ingin memerlukan kompatibilitas lintas browser yang kuat, maka jQuery lebih baik
+
+## **Langkah-langkah pengimplementasian pengerjaan**
+
+### Penggunaan AJAX GET dan AJAX POST
+1. Membuat fungsi `get_product_json` dan `add_product_ajax` pada `views.py`
+    ```py
+        def get_product_json(request):
+        product_item = MarketStock.objects.filter(user=request.user)
+        return HttpResponse(serializers.serialize('json', product_item))
+
+        @csrf_exempt
+        def add_product_ajax(request):
+            if request.method == 'POST':
+                name = request.POST.get("name")
+                price = request.POST.get("price")
+                description = request.POST.get("description")
+                amount = request.POST.get("amount")
+                category = request.POST.get("category")
+                user = request.user
+
+                new_product = MarketStock(name=name, price=price, description=description,
+                                        user=user, amount = amount, category = category)
+                new_product.save()
+
+                return HttpResponse(b"CREATED", status=201)
+            return HttpResponseNotFound()
+    ```
+2. Menambahkan urlnya pada `urls.py`
+    ```py
+        path('get-item/', get_product_json, name='get_product_json'),
+        path('create-ajax/', add_product_ajax, name='add_product_ajax'),
+    ```
+3. Menambahkan script AJAX pada akhir `main.html` untuk melakukan AJAX GET dan POST
+
+    ```js
+        <script>
+        async function getProducts() {
+            return fetch("{% url 'main:get_product_json' %}").then((res) => res.json())
+        }
+
+        async function refreshProducts() {
+            const products = await getProducts();
+            const productRow = document.getElementById("product_row");
+            productRow.innerHTML = ""; // Clear the existing content
+
+            products.forEach((item) => {
+                const cardDiv = document.createElement("div");
+                cardDiv.className = "col-md-4";
+
+                cardDiv.innerHTML = `
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">${item.fields.name}</h5>
+                            <p class="card-text">Price: ${item.fields.price}</p>
+                            <p class="card-text">${item.fields.description}</p>
+                            <p class="card-text">Category: ${item.fields.category}</p>
+                            <p class="card-text">Amount: ${item.fields.amount}</p>
+                        </div>
+                    </div>
+                `
+
+                productRow.appendChild(cardDiv);
+            })
+        }
+
+        refreshProducts()
+
+        function addProduct() {
+            fetch("{% url 'main:add_product_ajax' %}", {
+                method: "POST",
+                body: new FormData(document.querySelector('#form'))
+            }).then(refreshProducts)
+
+            document.getElementById("form").reset()
+            return false
+        }
+
+        document.getElementById("button_add").onclick = addProduct
+        </script>
+    ```
+4. Menggunakan modal untuk menambahkan produk dan melakukan refresh halaman utama secara asinkronus untuk menampilkan daftar item terbaru tanpa reload halaman utama secara keseluruhan.
+
+    ```HTML
+        <h2 class="section-title">Product List</h2>
+                <div class="row" id="product_row">
+                    <!-- Product cards akan ditampilkan secara asynchronus dengan JavaScript disini -->
+                </div>
+
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Product</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form" onsubmit="return false;">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="name" class="col-form-label">Name:</label>
+                                        <input type="text" class="form-control" id="name" name="name"></input>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="price" class="col-form-label">Price:</label>
+                                        <input type="number" class="form-control" id="price" name="price"></input>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description" class="col-form-label">Description:</label>
+                                        <textarea class="form-control" id="description" name="description"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="name" class="col-form-label">Category:</label>
+                                        <input type="text" class="form-control" id="category" name="category"></input>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="price" class="col-form-label">Amount:</label>
+                                        <input type="number" class="form-control" id="amount" name="amount"></input>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" id="button_add" data-bs-dismiss="modal">Add Product</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    ```
+
+## **Melakukan collecstatic**
+
+Untuk mengerjakan tahap ini cukup lakukan perintah berikut pada terminal dan pada direktori proyek
+`py manage.py collectstatic`

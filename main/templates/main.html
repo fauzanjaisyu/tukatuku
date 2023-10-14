@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to TukaTuku!</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,8 +19,12 @@
         .header {
             background-color: #007bff;
             color: #fff;
-            text-align: center;
+            text-align: left;
             padding: 20px;
+        }
+
+        .logout-btn-posisition {
+            text-align: right;
         }
 
         .logo {
@@ -31,12 +36,24 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1500px;
             margin: 20px auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px; /* Negative margin to fix spacing issues */
+        }
+
+        .col-md-4 {
+            flex: 0 0 calc(33.333% - 30px); /* Adjust width for 3 columns per row */
+            max-width: calc(33.333% - 30px); /* Adjust max-width for 3 columns per row */
+            padding: 15px;
         }
 
         table {
@@ -69,7 +86,7 @@
         }
 
         .add-product-btn {
-            background-color: #007bff;
+            background-color: #9eb9d4;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -104,38 +121,111 @@
 <body>
     <div class="header">
         <h1>Welcome to <span class="logo">Tuka</span><span class="tagline">Tuku!</span></h1>
+        
+        <!-- Logout button -->
+        <div class="logout-btn-posisition">
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Product by AJAX</button>
+            <a href="{% url 'main:logout' %}" class="logout-btn">Logout</a>
+        </div>
+
     </div>
 
-    
-<div class="container">
-    <h2 class="section-title">Product List</h2>
-    <div class="row">
-        {% for product in products %}
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text">Price: ${{ product.price }}</p>
-                    <p class="card-text">{{ product.description }}</p>
-                    <p class="card-text">Category: {{ product.category }}</p>
-                    <p class="card-text">Amount: {{ product.amount }}</p>
+    <div class="container">
+        <h2 class="section-title">Product List</h2>
+        <div class="row" id="product_row">
+            <!-- Product cards akan ditampilkan secara asynchronus dengan JavaScript disini -->
+        </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Product</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form" onsubmit="return false;">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="name" class="col-form-label">Name:</label>
+                                <input type="text" class="form-control" id="name" name="name"></input>
+                            </div>
+                            <div class="mb-3">
+                                <label for="price" class="col-form-label">Price:</label>
+                                <input type="number" class="form-control" id="price" name="price"></input>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="col-form-label">Description:</label>
+                                <textarea class="form-control" id="description" name="description"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="col-form-label">Category:</label>
+                                <input type="text" class="form-control" id="category" name="category"></input>
+                            </div>
+                            <div class="mb-3">
+                                <label for="price" class="col-form-label">Amount:</label>
+                                <input type="number" class="form-control" id="amount" name="amount"></input>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="button_add" data-bs-dismiss="modal">Add Product</button>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
 
-    <div class="total-item">
-        <p>You have {{ products|length }} items in your application</p>
-    </div>
-
-    <a href="{% url 'main:create_product' %}" class="add-product-btn">Add New Product</a>
+        <div class="total-item">
+            <p>You have {{ products|length }} items in your application</p>
+        </div>
     
-    <h5>Sesi terakhir login: {{ last_login }}</h5>
-
-    <!-- Logout button -->
-    <a href="{% url 'main:logout' %}" class="logout-btn">Logout</a>
-</div>
+        <h5>Sesi terakhir login: {{ last_login }}</h5>
+    </div>
 </body>
 </html>
+<script>
+    async function getProducts() {
+        return fetch("{% url 'main:get_product_json' %}").then((res) => res.json())
+    }
+
+    async function refreshProducts() {
+        const products = await getProducts();
+        const productRow = document.getElementById("product_row");
+        productRow.innerHTML = ""; // Clear the existing content
+
+        products.forEach((item) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.className = "col-md-4";
+
+            cardDiv.innerHTML = `
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">${item.fields.name}</h5>
+                        <p class="card-text">Price: ${item.fields.price}</p>
+                        <p class="card-text">${item.fields.description}</p>
+                        <p class="card-text">Category: ${item.fields.category}</p>
+                        <p class="card-text">Amount: ${item.fields.amount}</p>
+                    </div>
+                </div>
+            `
+
+            productRow.appendChild(cardDiv);
+        })
+    }
+
+    refreshProducts()
+
+    function addProduct() {
+        fetch("{% url 'main:add_product_ajax' %}", {
+            method: "POST",
+            body: new FormData(document.querySelector('#form'))
+        }).then(refreshProducts)
+
+        document.getElementById("form").reset()
+        return false
+    }
+
+    document.getElementById("button_add").onclick = addProduct
+</script>
 {% endblock content %}
