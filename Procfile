@@ -1,2 +1,2 @@
 release: django-admin migrate --noinput
-web: gunicorn tukatuku.wsgi
+web: gunicorn tukatuku_web.wsgi
