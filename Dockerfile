@@ -4,7 +4,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    DJANGO_SETTINGS_MODULE=tukatuku.settings \
+    DJANGO_SETTINGS_MODULE=tukatuku_web.settings \
     PORT=8000 \
     WEB_CONCURRENCY=2
 
